@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тест сотрудников 112</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin:0; padding:0;
+      background: linear-gradient(135deg, #1e3c72, #2a5298, #6dd5ed);
+      background-size: 300% 300%;
+      animation: gradientMove 15s ease infinite;
+      color:#fff;
+    }
+    @keyframes gradientMove {
+      0% {background-position:0% 50%;}
+      50% {background-position:100% 50%;}
+      100% {background-position:0% 50%;}
+    }
+    header {
+      text-align:center;
+      padding:20px;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    }
+    header img {
+      max-width: 140px;
+      margin-bottom: 10px;
+      filter: brightness(0) invert(1);
+      animation: logoPulse 3s infinite ease-in-out;
+    }
+    @keyframes logoPulse {
+      0%,100% { transform: scale(1);}
+      50% { transform: scale(1.05);}
+    }
+    header h1 {
+      font-size:30px;
+      font-weight:bold;
+      color: #fff;
+      margin:0;
+    }
+    .container {
+      max-width:800px;
+      margin:50px auto;
+      background: rgba(255,255,255,0.1);
+      padding:30px;
+      border-radius:20px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.5);
+      transition: all 0.5s ease;
+      backdrop-filter: blur(15px);
+      text-align:center;
+    }
+    h2 {font-size:28px; margin-bottom:20px; color:#fff;}
+    .question {font-size:22px; margin-bottom:20px; font-weight:500;}
+    .answers label {
+      display:block;
+      padding:15px;
+      margin:10px 0;
+      background: rgba(255,255,255,0.15);
+      border-radius:12px;
+      cursor:pointer;
+      transition:0.3s;
+      font-size:18px;
+      color:#fff;
+    }
+    .answers label:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.03);
+    }
+    button {
+      background: linear-gradient(90deg, #ff6a00, #ee0979);
+      border:none;
+      padding:15px 25px;
+      margin:15px 5px 0 0;
+      border-radius:12px;
+      font-size:18px;
+      font-weight:bold;
+      color:#fff;
+      cursor:pointer;
+      transition:0.3s;
+      box-shadow:0 0 20px rgba(238,9,121,0.7);
+    }
+    button:hover {
+      background: linear-gradient(90deg, #ff8a3d, #ff3ea0);
+      transform: scale(1.07);
+      box-shadow:0 0 25px rgba(238,9,121,1);
+    }
+    #progressBarContainer {
+      margin: 15px 0;
+      background: rgba(255,255,255,0.2);
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: #ff6a00;
+      transition: width 0.4s ease;
+    }
+    #result {
+      font-size:26px;
+      font-weight:bold;
+      margin-top:20px;
+      color:#fff;
+    }
+    .wrong-answers {
+      margin-top:20px;
+      text-align:left;
+    }
+    .wrong-answers h3 {
+      font-size:22px;
+      margin-bottom:10px;
+      color:#ffdddd;
+    }
+    .wrong-item {
+      background: rgba(255,255,255,0.1);
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:15px;
+    }
+    .wrong-item p {margin:5px 0; font-size:16px;}
+    .wrong-item .your-answer {color:#ff6b6b;}
+    .wrong-item .correct-answer {color:#8ef58e;}
+    .input-group {margin-bottom: 20px; text-align: left;}
+    .input-group label {display: block; font-size: 18px; margin-bottom: 5px;}
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="78776277-f79b-4024-a77e-448d6c2ebcb1.png" alt="Логотип 112">
+  <div class="container">
+    <!-- Приветственный экран -->
+    <div id="welcomeScreen">
+      <h2>Добро пожаловать!</h2>
+      <div class="input-group">
+        <label for="fio">Ф.И.О.</label>
+        <input type="text" id="fio" placeholder="Введите Ф.И.О." required>
+      </div>
+      <div class="input-group">
+        <label for="operatorId">Номер оператора</label>
+        <input type="text" id="operatorId" placeholder="Введите номер оператора" required>
+      </div>
+      <p>Пройдите тест и проверьте свои знания для работы в службе 112</p>
+      <button id="startBtn">Начать тест</button>
+    </div>
+
+    <!-- Тест -->
+    <div id="quizScreen" style="display:none;">
+      <div id="progressBarContainer"><div id="progressBar"></div></div>
+      <div class="question" id="question"></div>
+      <div class="answers" id="answers"></div>
+      <button id="nextBtn">Далее</button>
+      <button id="skipBtn">Пропустить</button>
+    </div>
+
+    <!-- Результат -->
+    <div id="resultScreen" style="display:none;">
+      <h2>Результат</h2>
+      <div id="result"></div>
+      <div class="wrong-answers" id="wrongAnswers"></div>
+      <button id="restartBtn">Пройти заново</button>
+    </div>
+  </div>
+
+<script>
+const originalQuestions = [
+  {question: "103-модда бу?", answers:["ўзини ўзи ўлдириш дажасига етказиш","ўзини ўзи ўлдиришга ундаш","ўлдириш ёки зўрлик ишлатиш билан қўрқитиш"], correct:0},
+  {question: "104-модда бу?", answers:["қасддан баданга енгил шикаст етказиш","қасддан баданга оғир шикаст етказиш","қасддан баданга ўртача оғир шикаст етказиш"], correct:1},
+  {question: "105-модда бу?", answers:["қасддан баданга енгил шикаст етказиш","қасддан баданга оғир шикаст етказиш","қасддан баданга ўртача оғир шикаст етказиш"], correct:2},
+  {question: "109-модда бу?", answers:["қасддан баданга енгил шикаст етказиш","қасддан баданга оғир шикаст етказиш","қасддан баданга ўртача оғир шикаст етказиш"], correct:0},
+  {question: "112-модда бу?", answers:["ўлдириш ёки зўрлик ишлатиш билан қўрқитиш","номусга тегиш","ўн олти ёшга тўлмаган шахсга нисбатан уятсиз-бузуқ ҳаракатлар қилиш"], correct:0},
+  {question: "116-модда бу?", answers:["касб юзасидан ўз вазифаларига совуққонлик билан қараш","мансаб сохтакорлиги","касб юзасидан ўз вазифаларини лозим даражада бажармаслик"], correct:2},
+  {question: "118-модда бу?", answers:["жинсий эҳтиёжни зўрлик ишлатиб ғайритабиий усулда қондириш","номусга тегиш","шахсни жинсий алоқа қилишга мажбур этиш"], correct:1},
+  {question: "119-модда бу?", answers:["жинсий эҳтиёжни зўрлик ишлатиб ғайритабиий усулда қондириш","номусга тегиш","шахсни жинсий алоқа қилишга мажбур этиш"], correct:0},
+  {question: "128-модда бу?", answers:["вояга етмаган шахсни ғайриижтимоий хатти-ҳаракатларга жалб қилиш","ўн олти ёшга тўлмаган шахс билан жинсий алоқа қилиш","ўн олти ёшга тўлмаган шахсга нисбатан уятсиз-бузуқ ҳаракатлар қилиш"], correct:1},
+  {question: "129-модда бу?", answers:["вояга етмаган шахсни ғайриижтимоий хатти-ҳаракатларга жалб қилиш","ўн олти ёшга тўлмаган шахс билан жинсий алоқа қилиш","ўн олти ёшга тўлмаган шахсга нисбатан уятсиз-бузуқ ҳаракатлар қилиш"], correct:2},
+  {question: "137-модда бу?", answers:["одам ўғирлаш","одам савдоси","туҳмат"], correct:0},
+  {question: "139-модда бу?", answers:["одам ўғирлаш","одам савдоси","туҳмат"], correct:2},
+  {question: "140-модда бу?", answers:["шахсга доир маълумотлар тўғрисидаги қонунчиликни бузиш","фуқароларнинг турар жойи дахлсизлигини бузиш","ҳақорат қилиш"], correct:2},
+  {question: "141/2-модда бу?", answers:["шахсга доир маълумотлар тўғрисидаги қонунчиликни бузиш","фуқароларнинг турар жойи дахлсизлигини бузиш","ҳақорат қилиш"], correct:0},
+  {question: "142-модда бу?", answers:["шахсга доир маълумотлар тўғрисидаги қонунчиликни бузиш","фуқароларнинг турар жойи дахлсизлигини бузиш","ҳақорат қилиш"], correct:1},
+  {question: "164-модда бу?", answers:["талончилик","босқинчилик","товламачилик"], correct:1},
+  {question: "165-модда бу?", answers:["талончилик","босқинчилик","товламачилик"], correct:2},
+  {question: "166-модда бу?", answers:["талончилик","босқинчилик","товламачилик"], correct:0},
+  {question: "168-модда бу?", answers:["ўғрилик","фирибгарлик","мулкни қасддан нобуд қилиш ёки унга зарар этказиш"], correct:1},
+  {question: "169-модда бу?", answers:["ўғрилик","фирибгарлик","мулкни қасддан нобуд қилиш ёки унга зарар этказиш"], correct:0},
+  {question: "173-модда бу?", answers:["ўғрилик","фирибгарлик","мулкни қасддан нобуд қилиш ёки унга зарар этказиш"], correct:2},
+  {question: "183-модда бу", answers:["безорилик","савдо ёки хизмат кўрсатиш қоидаларини бузиш","майда безорилик"], correct:2},
+  {question: "189-модда бу?", answers:["безорилик","савдо ёки хизмат кўрсатиш қоидаларини бузиш","майда безорилик"], correct:1},
+  {question: "277-модда бу?", answers:["безорилик","савдо ёки хизмат кўрсатиш қоидаларини бузиш","майда безорилик"], correct:0},
+  {question: "196-модда бу?", answers:["экинзор, ўрмон ёки бошқа дов-дарахтларга шикаст етказиш ёки уларни нобуд қилиш","атроф табиий муҳитни ифлослантириш","экология сохасида"], correct:1},
+  {question: "198-модда бу?", answers:["экинзор, ўрмон ёки бошқа дов-дарахтларга шикаст етказиш ёки уларни нобуд қилиш","атроф табиий муҳитни ифлослантириш","экология сохасида"], correct:0},
+  {question: "205-модда бу?", answers:["мансабга совуққонлик билан қараш","ҳокимият ёки мансаб ваколатини суиистеъмол қилиш","ҳокимият ёки мансаб ваколати доирасидан четга чиқиш"], correct:1},
+  {question: "206-модда бу?", answers:["мансабга совуққонлик билан қараш","ҳокимият ёки мансаб ваколатини суиистеъмол қилиш","ҳокимият ёки мансаб ваколати доирасидан четга чиқиш"], correct:2},
+  {question: "207-модда бу?", answers:["мансабга совуққонлик билан қараш","ҳокимият ёки мансаб ваколатини суиистеъмол қилиш","ҳокимият ёки мансаб ваколати доирасидан четга чиқиш"], correct:0},
+  {question: "229-модда бу?", answers:["қасддан одам ўлдириш","онанинг ўз чақалоғини қасддан ўлдириши","ўзбошимчалик"], correct:2},
+  {question: "266-модда бу?", answers:["йтх ўлим ҳолати","йтх ўлим ҳолатисиз","транспорт воситалари ҳаракати ёки улардан фойдаланиш хавфсизлиги қоидаларини бузиш"], correct:2},
+  {question: "266/1-модда бу?", answers:["йтх ўлим ҳолати","йтх ўлим ҳолатисиз","транспорт воситалари ҳаракати ёки улардан фойдаланиш хавфсизлиги қоидаларини бузиш"], correct:1},
+  {question: "266/2-модда бу?", answers:["йтх ўлим ҳолати","йтх ўлим ҳолатисиз","транспорт воситалари ҳаракати ёки улардан фойдаланиш хавфсизлиги қоидаларини бузиш"], correct:0},
+  {question: "267-модда бу?", answers:["йтх ўлим ҳолати","транспорт воситасини олиб қочиш","транспорт воситалари ҳаракати ёки улардан фойдаланиш хавфсизлиги қоидаларини бузиш"], correct:1},
+  {question: "97-модда бу?", answers:["қасддан одам ўлдириш","онанинг ўз чақалоғини қасддан ўлдириши","ўзбошимчалик"], correct:0},
+  {question: "99-модда бу?", answers:["қасддан одам ўлдириш","онанинг ўз чақалоғини қасддан ўлдириши","ўзбошимчалик"], correct:1},
+];
+
+let questions = [];
+let currentQuestionIndex = 0;
+let skippedQuestions = [];
+let score = 0;
+let wrongAnswersList = [];
+
+let fio = "";
+let operatorId = "";
+
+const TELEGRAM_BOT_TOKEN = '7712560205:AAGwrv87Btk0TjPH2tWa7xGmjz9Hj-qkGIM';
+const TELEGRAM_CHAT_ID = '5431703655';
+
+function sendResultToTelegram(message) {
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+      parse_mode: "HTML"
+    })
+  });
+}
+
+function updateProgress(){
+  const total = originalQuestions.length;
+  const answered = score + wrongAnswersList.length;
+  const viewed = answered + skippedQuestions.length;
+  progressBar.style.width = (viewed / total) * 100 + "%";
+}
+
+function startQuiz(){
+  fio = document.getElementById("fio").value.trim();
+  operatorId = document.getElementById("operatorId").value.trim();
+  if (!fio || !operatorId) {
+    alert("Пожалуйста, введите Ф.И.О. и номер оператора.");
+    return;
+  }
+  questions = [...originalQuestions];
+  currentQuestionIndex = 0;
+  skippedQuestions = [];
+  score = 0;
+  wrongAnswersList = [];
+  welcomeScreen.style.display = "none";
+  quizScreen.style.display = "block";
+  loadQuestion();
+  updateProgress();
+}
+
+function loadQuestion(){
+  const q = questions[currentQuestionIndex];
+  questionEl.textContent = q.question;
+  answersEl.innerHTML = "";
+  q.answers.forEach((ans, idx)=>{
+    let label = document.createElement("label");
+    label.innerHTML = `<input type='radio' name='answer' value='${idx}'> ${ans}`;
+    answersEl.appendChild(label);
+  });
+  updateProgress();
+}
+
+function nextQuestion(){
+  const selected = document.querySelector("input[name='answer']:checked");
+  if(!selected){
+    alert("Пожалуйста, выберите ответ или нажмите 'Пропустить'.");
+    return;
+  }
+  const selectedValue = parseInt(selected.value);
+  const currentQ = questions[currentQuestionIndex];
+  if(selectedValue === currentQ.correct){
+    score++;
+  } else {
+    wrongAnswersList.push({
+      question: currentQ.question,
+      yourAnswer: currentQ.answers[selectedValue],
+      correctAnswer: currentQ.answers[currentQ.correct]
+    });
+  }
+  goNext();
+}
+
+function skipQuestion(){
+  skippedQuestions.push(questions[currentQuestionIndex]);
+  goNext();
+}
+
+function goNext(){
+  currentQuestionIndex++;
+  if(currentQuestionIndex >= questions.length){
+    if(skippedQuestions.length > 0){
+      questions = [...skippedQuestions];
+      skippedQuestions = [];
+      currentQuestionIndex = 0;
+      loadQuestion();
+    } else {
+      showResult();
+    }
+  } else {
+    loadQuestion();
+  }
+}
+
+function showResult(){
+  quizScreen.style.display = "none";
+  resultScreen.style.display = "block";
+  resultEl.textContent = `Вы ответили правильно на ${score} из ${originalQuestions.length} вопросов.`;
+
+  let telegramMessage = `<b>📊 Результаты теста</b>\n`;
+  telegramMessage += `👤 Ф.И.О.: <b>${fio}</b>\n🆔 Оператор: <b>${operatorId}</b>\n`;
+  telegramMessage += `✅ Правильных: ${score} из ${originalQuestions.length}\n`;
+  if(wrongAnswersList.length > 0){
+    telegramMessage += `❌ Ошибки:`;
+    wrongAnswersList.forEach((item, index) => {
+      telegramMessage += `\n${index+1}) ${item.question}\n– Ваш: ${item.yourAnswer}\n– Верный: ${item.correctAnswer}`;
+    });
+  } else {
+    telegramMessage += `\n🎉 Все ответы верны!`;
+  }
+
+  sendResultToTelegram(telegramMessage);
+
+  wrongAnswersEl.innerHTML = "";
+  if(wrongAnswersList.length > 0){
+    const header = document.createElement("h3");
+    header.textContent = "Ошибки:";
+    wrongAnswersEl.appendChild(header);
+    wrongAnswersList.forEach(item=>{
+      const div = document.createElement("div");
+      div.classList.add("wrong-item");
+      div.innerHTML = `<p><b>Вопрос:</b> ${item.question}</p>
+                       <p class="your-answer"><b>Ваш ответ:</b> ${item.yourAnswer}</p>
+                       <p class="correct-answer"><b>Правильный ответ:</b> ${item.correctAnswer}</p>`;
+      wrongAnswersEl.appendChild(div);
+    });
+  } else {
+    wrongAnswersEl.innerHTML = "<h3>Поздравляем! Все ответы правильные 🎉</h3>";
+  }
+}
+
+function restartQuiz(){
+  welcomeScreen.style.display = "block";
+  resultScreen.style.display = "none";
+  document.getElementById("fio").value = "";
+  document.getElementById("operatorId").value = "";
+}
+
+const welcomeScreen = document.getElementById("welcomeScreen");
+const quizScreen = document.getElementById("quizScreen");
+const resultScreen = document.getElementById("resultScreen");
+const questionEl = document.getElementById("question");
+const answersEl = document.getElementById("answers");
+const progressBar = document.getElementById("progressBar");
+const resultEl = document.getElementById("result");
+const wrongAnswersEl = document.getElementById("wrongAnswers");
+
+// События
+
+  document.getElementById("startBtn").addEventListener("click", startQuiz);
+  document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+  document.getElementById("skipBtn").addEventListener("click", skipQuestion);
+  document.getElementById("restartBtn").addEventListener("click", restartQuiz);
+</script>
+</body>
+</html>
